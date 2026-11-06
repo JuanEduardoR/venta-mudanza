@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ventas por mudanza</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-full text-slate-800 bg-slate-50 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('catalog')">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-boxes-packing text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight text-slate-900 lowercase">ventas por mudanza</h1>
+                        <p class="text-xs text-slate-500">¡Todo debe irse pronto!</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs & QR Button -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button onclick="switchTab('catalog')" id="tabBtnCatalog" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 bg-brand-50 text-brand-700">
+                        <i class="fa-solid fa-store"></i>
+                        <span class="hidden sm:inline">Catálogo</span>
+                    </button>
+
+                    <button onclick="switchTab('admin')" id="tabBtnAdmin" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span class="hidden sm:inline">Administrar</span>
+                    </button>
+
+                    <button onclick="openQRModal()" class="p-2 sm:px-3 sm:py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all font-medium text-sm flex items-center space-x-2 shadow-sm" title="Generar QR">
+                        <i class="fa-solid fa-qrcode text-base"></i>
+                        <span class="hidden md:inline">Compartir QR</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: CATALOGO DE PRODUCTOS (COMPRADOR) -->
+        <!-- ========================================== -->
+        <section id="viewCatalog" class="space-y-6">
+            
+            <!-- Banner Informativo -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-house-circle-exclamation text-[200px]"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-block px-3 py-1 bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">Precios de Oportunidad</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">Gran liquidación por mudanza</h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Haz clic en cualquier artículo para chatear directamente por WhatsApp y coordinar la compra.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Filtros y Búsqueda -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    
+                    <!-- Buscador -->
+                    <div class="md:col-span-8 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Buscar producto..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                    </div>
+
+                    <!-- Orden -->
+                    <div class="md:col-span-4">
+                        <select id="sortFilter" onchange="applyFilters()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
+                            <option value="default">Ordenar por...</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                            <option value="name-asc">Nombre (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Toggles adicionales -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs sm:text-sm text-slate-600">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="hideSoldCheck" onchange="applyFilters()" checked class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
+                        <span>Ocultar items vendidos</span>
+                    </label>
+                    <span id="resultsCounter" class="font-medium text-slate-500">Mostrando 0 productos</span>
+                </div>
+            </div>
+
+            <!-- Grid de Productos -->
+            <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Se puebla dinámicamente -->
+            </div>
+
+            <!-- Estado Vacío -->
+            <div id="emptyCatalogState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
+                <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-3"></i>
+                <h3 class="text-lg font-semibold text-slate-700">No se encontraron productos</h3>
+                <p class="text-slate-500 text-sm mt-1">Intenta ajustando el término de búsqueda.</p>
+                <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors">
+                    Limpiar búsqueda
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: PANEL DE ADMINISTRACIÓN (VENDEDOR) -->
+        <!-- ========================================== -->
+        <section id="viewAdmin" class="hidden space-y-8">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Panel de Administración</h2>
+                    <p class="text-sm text-slate-500">Agrega, edita o elimina los artículos sincronizados en la nube.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openFormModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-brand-500/20 flex items-center space-x-2 transition-all">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Agregar Nuevo Producto</span>
+                    </button>
+                    <button onclick="confirmResetData()" class="px-3 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-sm font-medium transition-colors" title="Restablecer datos demo">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Gestión -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+                            <tr>
+                                <th class="py-3.5 px-4">Producto</th>
+                                <th class="py-3.5 px-4">Fotos</th>
+                                <th class="py-3.5 px-4">Precio</th>
+                                <th class="py-3.5 px-4">Estado Item</th>
+                                <th class="py-3.5 px-4">Disponibilidad</th>
+                                <th class="py-3.5 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="divide-y divide-slate-100">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="emptyAdminState" class="hidden text-center py-12">
+                    <p class="text-slate-400">No hay productos guardados. ¡Agrega el primero!</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: DETALLE DE PRODUCTO (COMPRADOR)     -->
+    <!-- ========================================== -->
+    <div id="productDetailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl transform transition-all relative my-8">
+            <button onclick="closeModal('productDetailModal')" class="absolute top-3 right-3 z-10 w-9 h-9 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex flex-col md:flex-row">
+                <!-- Visor de Galería de Imágenes -->
+                <div class="md:w-1/2 bg-slate-900 flex flex-col justify-between relative min-h-[300px]">
+                    <div class="relative w-full h-[280px] sm:h-[320px] bg-black flex items-center justify-center group">
+                        <img id="detailMainImg" src="" alt="Producto" class="w-full h-full object-contain cursor-pointer" onclick="openLightboxCurrent()">
+                        
+                        <span id="detailStatusBadge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-sm z-10"></span>
+                        
+                        <button onclick="openLightboxCurrent()" class="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white text-xs px-2.5 py-1.5 rounded-lg backdrop-blur-sm flex items-center space-x-1.5 transition-all">
+                            <i class="fa-solid fa-expand"></i>
+                            <span>Ver completa</span>
+                        </button>
+                    </div>
+
+                    <!-- Miniaturas / Galería de hasta 4 imágenes -->
+                    <div id="detailThumbnails" class="flex items-center justify-center space-x-2 p-3 bg-slate-900 border-t border-slate-800 overflow-x-auto">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Info del Producto -->
+                <div class="md:w-1/2 p-6 flex flex-col justify-between bg-white">
+                    <div>
+                        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1" id="detailCondition">
+                            Estado
+                        </div>
+                        <h3 id="detailTitle" class="text-xl font-bold text-slate-900 mb-2">Título del Producto</h3>
+                        <div class="text-2xl font-extrabold text-slate-900 mb-4" id="detailPrice">$0</div>
+                        
+                        <div class="space-y-3 border-t border-slate-100 pt-3 mb-6">
+                            <p id="detailDescription" class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                                Descripción detallada...
+                            </p>
+                            <div class="flex items-center text-xs text-slate-500 space-x-1.5 pt-2">
+                                <i class="fa-solid fa-location-dot text-red-500"></i>
+                                <span id="detailLocation">Retiro a coordinar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón WhatsApp -->
+                    <a id="detailWspBtn" href="#" target="_blank" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                        <span>Consultar por WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: VISOR DE IMAGEN COMPLETA (LIGHTBOX) -->
+    <!-- ========================================== -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4 select-none">
+        <!-- Top Bar -->
+        <div class="w-full flex justify-between items-center text-white p-2">
+            <span id="lightboxCounter" class="text-sm text-slate-400 font-medium">Foto 1 de 4</span>
+            <button onclick="closeModal('lightboxModal')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Main Image with Nav Arrows -->
+        <div class="relative w-full max-w-4xl flex-grow flex items-center justify-center my-2">
+            <button id="lightboxPrevBtn" onclick="navigateLightbox(-1)" class="absolute left-2 z-10 w-12 h-12 bg-black/60 hover:bg-black/90 text-white rounded-full flex items-center justify-center transition-all">
+                <i class="fa-solid fa-chevron-left text-xl"></i>
+            </button>
+            
+            <img id="lightboxImg" src="" alt="Imagen Completa" class="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl">
+
+            <button id="lightboxNextBtn" onclick="navigateLightbox(1)" class="absolute right-2 z-10 w-12 h-12 bg-black/60 hover:bg-black/90 text-white rounded-full flex items-center justify-center transition-all">
+                <i class="fa-solid fa-chevron-right text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Bottom caption -->
+        <div class="text-center text-slate-300 text-sm py-2" id="lightboxCaption">
+            <!-- Título del producto -->
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: FORMULARIO (HASTA 4 FOTOS)          -->
+    <!-- ========================================== -->
+    <div id="productFormModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8 relative">
+            <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                <h3 id="formModalTitle" class="text-lg font-bold text-slate-900">Agregar Producto</h3>
+                <button onclick="closeModal('productFormModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="productForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="formId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Título del Artículo *</label>
+                    <input type="text" id="formTitle" required placeholder="Ej: Mesa Comedor + 4 Sillas" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Precio ($) *</label>
+                        <input type="number" id="formPrice" min="0" step="any" required placeholder="Ej: 150" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Estado del Producto</label>
+                        <select id="formCondition" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <option value="Excelente estado">Excelente estado</option>
+                            <option value="Buen estado">Buen estado</option>
+                            <option value="Usado / Detalles">Usado / Detalles</option>
+                            <option value="Como Nuevo">Como Nuevo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Disponibilidad</label>
+                        <select id="formStatus" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <option value="disponible">Disponible</option>
+                            <option value="reservado">Reservado</option>
+                            <option value="vendido">Vendido</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ubicación / Barrio</label>
+                        <input type="text" id="formLocation" placeholder="Ej: Palermo / Centro" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE IMÁGENES (HASTA 4) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Fotos del Producto (Hasta 4)</label>
+                    <div class="space-y-2">
+                        <input type="file" id="formImgFiles" accept="image/*" multiple onchange="handleFilesUpload(event)" class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 w-full">
+                        <p class="text-[11px] text-slate-400">O ingresa URLs de imágenes separadas por coma:</p>
+                        <input type="text" id="formImgUrls" placeholder="https://url1.com, https://url2.com..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" oninput="previewUrlsInput()">
+                    </div>
+
+                    <!-- Previsualizador de 4 imágenes -->
+                    <div id="formImgPreviews" class="grid grid-cols-4 gap-2 mt-3">
+                        <!-- Img thumbnails creadas dinámicamente -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Descripción</label>
+                    <textarea id="formDescription" rows="3" placeholder="Medidas, detalles, uso..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('productFormModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-500/20 transition-all">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: GENERADOR CÓDIGO QR                 -->
+    <!-- ========================================== -->
+    <div id="qrModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+            <button onclick="closeModal('qrModal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-800">
+                <i class="fa-solid fa-qrcode text-xl"></i>
+            </div>
+            
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Código QR del Catálogo</h3>
+            <p class="text-xs text-slate-500 mb-4">Escanea con tu celular o compártelo para acceder al catálogo.</p>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 inline-block mb-4">
+                <div id="qrcodeCanvas" class="flex justify-center"></div>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="copyCurrentUrl()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl flex items-center justify-center space-x-2 transition-colors">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Copiar Enlace de la Página</span>
+                </button>
+                <div id="copyToast" class="text-xs font-semibold text-brand-600 opacity-0 transition-opacity">¡Enlace copiado al portapapeles!</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC (NUBE JSONBIN.IO)         -->
+    <!-- ========================================== -->
+    <script>
+        // CONFIGURACIÓN: Número de WhatsApp del vendedor
+        const SELLER_PHONE = "5493412764282"; // Reemplazar por tu número real
+
+        // CONFIGURACIÓN DE JSONBIN.IO (NUBE)
+        const BIN_ID = "6aed3c2affd5d16053aaa3fe";       // <-- Reemplaza con tu Bin ID de JSONBin
+        const MASTER_KEY = "$2a$10$biShSxIhEFAyuGyz0d1a4e1M0eTVYqxUsh0h452UzvWb1dZ6Ujy4G"; // <-- Reemplaza con tu Master Key de JSONBin
+
+        // DATOS INICIALES DEMO
+        const initialProducts = [
+            {
+                id: "demo-1",
+                title: "Sillón Cama 2 Cueros Eco",
+                price: 180,
+                condition: "Excelente estado",
+                status: "disponible",
+                location: "Recoleta",
+                images: [
+                    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=800&q=80"
+                ],
+                description: "Sillón súper cómodo convertible en cama de 1 plaza y media. Tapizado impecable sin detalles."
+            },
+            {
+                id: "demo-2",
+                title: "Heladera No Frost 320L Smart",
+                price: 350,
+                condition: "Buen estado",
+                status: "disponible",
+                location: "Recoleta",
+                images: [
+                    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80"
+                ],
+                description: "Funciona perfectamente. 2 años de uso. Eficiencia energética A++."
+            }
+        ];
+
+        // ESTADO GLOBAL
+        let products = [];
+        let currentFormImages = [];
+        let currentActiveProduct = null;
+        let currentLightboxIndex = 0;
+
+        // INICIALIZACIÓN - CARGAR DESDE LA NUBE
+        window.onload = async function() {
+            await loadProductsFromCloud();
+            renderCatalog();
+            renderAdminTable();
+        };
+
+        async function loadProductsFromCloud() {
+            if (BIN_ID === "PEGAR_AQUI_TU_BIN_ID") {
+                products = [...initialProducts];
+                return;
+            }
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': MASTER_KEY }
+                });
+                const data = await response.json();
+                if (data && data.record && Array.isArray(data.record.products)) {
+                    products = data.record.products;
+                } else {
+                    products = [...initialProducts];
+                }
+            } catch (e) {
+                console.error("Error cargando desde la nube, usando respaldo local:", e);
+                products = [...initialProducts];
+            }
+        }
+
+        async function saveProductsToCloud() {
+            if (BIN_ID === "PEGAR_AQUI_TU_BIN_ID") {
+                alert("Atención: No has configurado las credenciales de JSONBin en el código.");
+                return;
+            }
+            try {
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': MASTER_KEY
+                    },
+                    body: JSON.stringify({ products: products })
+                });
+            } catch (e) {
+                console.error("Error guardando en la nube:", e);
+                alert("Hubo un error al sincronizar con la nube.");
+            }
+        }
+
+        async function confirmResetData() {
+            if (confirm("¿Deseas restablecer el catálogo a los datos iniciales de prueba?")) {
+                products = [...initialProducts];
+                await saveProductsToCloud();
+                renderCatalog();
+                renderAdminTable();
+            }
+        }
+
+        // --- NAVEGACIÓN ---
+        function switchTab(tab) {
+            const catalogView = document.getElementById('viewCatalog');
+            const adminView = document.getElementById('viewAdmin');
+            const btnCatalog = document.getElementById('tabBtnCatalog');
+            const btnAdmin = document.getElementById('tabBtnAdmin');
+
+            if (tab === 'catalog') {
+                catalogView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                btnCatalog.className = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 bg-brand-50 text-brand-700";
+                btnAdmin.className = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2";
+                renderCatalog();
+            } else {
+                catalogView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                btnAdmin.className = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 bg-brand-50 text-brand-700";
+                btnCatalog.className = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2";
+                renderAdminTable();
+            }
+        }
+
+        // --- RENDER CATALOGO ---
+        function renderCatalog() {
+            const grid = document.getElementById('productsGrid');
+            const emptyState = document.getElementById('emptyCatalogState');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const sortVal = document.getElementById('sortFilter').value;
+            const hideSold = document.getElementById('hideSoldCheck').checked;
+
+            let filtered = products.filter(p => {
+                const matchesSearch = p.title.toLowerCase().includes(searchVal) || (p.description && p.description.toLowerCase().includes(searchVal));
+                const matchesSold = !hideSold || p.status !== 'vendido';
+                return matchesSearch && matchesSold;
+            });
+
+            if (sortVal === 'price-asc') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortVal === 'price-desc') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (sortVal === 'name-asc') {
+                filtered.sort((a, b) => a.title.localeCompare(b.title));
+            }
+
+            document.getElementById('resultsCounter').innerText = `Mostrando ${filtered.length} producto(s)`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            const fallbackImg = "https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen";
+
+            grid.innerHTML = filtered.map(product => {
+                const isSold = product.status === 'vendido';
+                const isReserved = product.status === 'reservado';
+
+                let badgeHtml = '';
+                if (isSold) {
+                    badgeHtml = `<span class="bg-slate-900 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Vendido</span>`;
+                } else if (isReserved) {
+                    badgeHtml = `<span class="bg-amber-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Reservado</span>`;
+                } else {
+                    badgeHtml = `<span class="bg-brand-600 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Disponible</span>`;
+                }
+
+                const mainImg = (product.images && product.images.length > 0) ? product.images[0] : fallbackImg;
+                const imgCount = product.images ? product.images.length : 0;
+
+                return `
+                    <div onclick="openDetailModal('${product.id}')" class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer ${isSold ? 'opacity-75' : ''}">
+                        <div>
+                            <!-- Img Container -->
+                            <div class="relative aspect-video w-full bg-slate-100 overflow-hidden">
+                                <img src="${mainImg}" onerror="this.src='${fallbackImg}'" alt="${product.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute top-3 left-3">
+                                    ${badgeHtml}
+                                </div>
+                                ${imgCount > 1 ? `
+                                    <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded-full backdrop-blur-sm flex items-center space-x-1">
+                                        <i class="fa-solid fa-camera text-[10px]"></i>
+                                        <span>${imgCount}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Body -->
+                            <div class="p-4">
+                                <h3 class="font-bold text-slate-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-brand-600 transition-colors">
+                                    ${product.title}
+                                </h3>
+                                <p class="text-xs text-slate-500 line-clamp-2 mb-3">
+                                    ${product.description || 'Sin descripción disponible.'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="px-4 pb-4 pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-400 block">Precio</span>
+                                <span class="text-xl font-extrabold text-slate-900">$${Number(product.price).toLocaleString()}</span>
+                            </div>
+                            <span class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-brand-600 group-hover:text-white text-slate-600 flex items-center justify-center transition-all">
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyFilters() { renderCatalog(); }
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortFilter').value = 'default';
+            document.getElementById('hideSoldCheck').checked = true;
+            renderCatalog();
+        }
+
+        // --- DETALLE DE PRODUCTO & GALERÍA ---
+        function openDetailModal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            currentActiveProduct = product;
+            currentLightboxIndex = 0;
+
+            const fallbackImg = "https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen";
+            const imgs = (product.images && product.images.length > 0) ? product.images : [fallbackImg];
+
+            document.getElementById('detailTitle').innerText = product.title;
+            document.getElementById('detailCondition').innerText = product.condition || 'Usado';
+            document.getElementById('detailPrice').innerText = `$${Number(product.price).toLocaleString()}`;
+            document.getElementById('detailDescription').innerText = product.description || 'Sin descripción adicional.';
+            document.getElementById('detailLocation').innerText = product.location ? `Retiro en: ${product.location}` : 'Ubicación a coordinar';
+
+            const badge = document.getElementById('detailStatusBadge');
+            if (product.status === 'vendido') {
+                badge.innerText = 'VENDIDO';
+                badge.className = 'absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-slate-900';
+            } else if (product.status === 'reservado') {
+                badge.innerText = 'RESERVADO';
+                badge.className = 'absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-amber-500';
+            } else {
+                badge.innerText = 'DISPONIBLE';
+                badge.className = 'absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-brand-600';
+            }
+
+            selectDetailImage(0);
+
+            const thumbContainer = document.getElementById('detailThumbnails');
+            thumbContainer.innerHTML = imgs.map((imgSrc, idx) => `
+                <button onclick="selectDetailImage(${idx})" class="w-12 h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${idx === 0 ? 'border-brand-500 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}">
+                    <img src="${imgSrc}" class="w-full h-full object-cover">
+                </button>
+            `).join('');
+
+            const message = `Hola! Vi tu producto "${product.title}" ($${product.price}) en tu venta por mudanza y me interesa comprarlo/consultar. ¿Sigue disponible?`;
+            document.getElementById('detailWspBtn').href = `https://wa.me/${SELLER_PHONE}?text=${encodeURIComponent(message)}`;
+
+            document.getElementById('productDetailModal').classList.remove('hidden');
+        }
+
+        function selectDetailImage(index) {
+            if (!currentActiveProduct) return;
+            const imgs = currentActiveProduct.images || [];
+            currentLightboxIndex = index;
+            const mainImg = document.getElementById('detailMainImg');
+            mainImg.src = imgs[index] || "https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen";
+
+            const thumbs = document.querySelectorAll('#detailThumbnails button');
+            thumbs.forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.className = "w-12 h-12 rounded-lg overflow-hidden border-2 border-brand-500 scale-105 transition-all flex-shrink-0";
+                } else {
+                    btn.className = "w-12 h-12 rounded-lg overflow-hidden border-2 border-transparent opacity-60 hover:opacity-100 transition-all flex-shrink-0";
+                }
+            });
+        }
+
+        // --- LIGHTBOX ---
+        function openLightboxCurrent() {
+            if (!currentActiveProduct) return;
+            openLightbox(currentLightboxIndex);
+        }
+
+        function openLightbox(index) {
+            if (!currentActiveProduct || !currentActiveProduct.images) return;
+            currentLightboxIndex = index;
+            updateLightboxView();
+            document.getElementById('lightboxModal').classList.remove('hidden');
+        }
+
+        function updateLightboxView() {
+            const imgs = currentActiveProduct.images;
+            const total = imgs.length;
+
+            document.getElementById('lightboxImg').src = imgs[currentLightboxIndex];
+            document.getElementById('lightboxCounter').innerText = `Foto ${currentLightboxIndex + 1} de ${total}`;
+            document.getElementById('lightboxCaption').innerText = currentActiveProduct.title;
+
+            document.getElementById('lightboxPrevBtn').style.display = total > 1 ? 'flex' : 'none';
+            document.getElementById('lightboxNextBtn').style.display = total > 1 ? 'flex' : 'none';
+        }
+
+        function navigateLightbox(direction) {
+            if (!currentActiveProduct || !currentActiveProduct.images) return;
+            const total = currentActiveProduct.images.length;
+            currentLightboxIndex = (currentLightboxIndex + direction + total) % total;
+            updateLightboxView();
+        }
+
+        // --- ADMINISTRACIÓN Y FORMULARIO ---
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            const emptyState = document.getElementById('emptyAdminState');
+
+            if (products.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            const fallbackImg = "https://placehold.co/100x100/e2e8f0/64748b?text=Foto";
+
+            tbody.innerHTML = products.map(product => {
+                let statusTag = '';
+                if (product.status === 'vendido') {
+                    statusTag = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">Vendido</span>`;
+                } else if (product.status === 'reservado') {
+                    statusTag = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Reservado</span>`;
+                } else {
+                    statusTag = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Disponible</span>`;
+                }
+
+                const mainImg = (product.images && product.images.length > 0) ? product.images[0] : fallbackImg;
+                const count = product.images ? product.images.length : 0;
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4 flex items-center space-x-3">
+                            <img src="${mainImg}" onerror="this.src='${fallbackImg}'" class="w-10 h-10 rounded-lg object-cover bg-slate-100 flex-shrink-0">
+                            <div>
+                                <div class="font-semibold text-slate-900">${product.title}</div>
+                                <div class="text-xs text-slate-400">${product.location || 'Sin ubicación'}</div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-xs font-medium text-slate-500">${count} foto(s)</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">$${Number(product.price).toLocaleString()}</td>
+                        <td class="py-3 px-4 text-xs">${product.condition || '-'}</td>
+                        <td class="py-3 px-4">${statusTag}</td>
+                        <td class="py-3 px-4 text-right space-x-2">
+                            <button onclick="editProduct('${product.id}')" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition-colors" title="Editar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteProduct('${product.id}')" class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 rounded-lg transition-colors" title="Eliminar">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openFormModal(editId = null) {
+            const form = document.getElementById('productForm');
+            form.reset();
+            currentFormImages = [];
+
+            if (editId) {
+                const product = products.find(p => p.id === editId);
+                if (product) {
+                    document.getElementById('formModalTitle').innerText = "Editar Producto";
+                    document.getElementById('formId').value = product.id;
+                    document.getElementById('formTitle').value = product.title;
+                    document.getElementById('formPrice').value = product.price;
+                    document.getElementById('formCondition').value = product.condition || 'Buen estado';
+                    document.getElementById('formStatus').value = product.status || 'disponible';
+                    document.getElementById('formLocation').value = product.location || '';
+                    document.getElementById('formDescription').value = product.description || '';
+
+                    if (product.images) {
+                        currentFormImages = [...product.images];
+                    }
+                }
+            } else {
+                document.getElementById('formModalTitle').innerText = "Agregar Producto";
+                document.getElementById('formId').value = "";
+            }
+
+            renderFormImgPreviews();
+            document.getElementById('productFormModal').classList.remove('hidden');
+        }
+
+        function handleFilesUpload(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            const remaining = 4 - currentFormImages.length;
+            const filesToProcess = files.slice(0, remaining);
+
+            let loaded = 0;
+            filesToProcess.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (currentFormImages.length < 4) {
+                        currentFormImages.push(e.target.result);
+                    }
+                    loaded++;
+                    if (loaded === filesToProcess.length) {
+                        renderFormImgPreviews();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function previewUrlsInput() {
+            const text = document.getElementById('formImgUrls').value;
+            const urls = text.split(',').map(u => u.trim()).filter(u => u.length > 0);
+            
+            urls.forEach(url => {
+                if (currentFormImages.length < 4 && !currentFormImages.includes(url)) {
+                    currentFormImages.push(url);
+                }
+            });
+            renderFormImgPreviews();
+        }
+
+        function removeFormImage(index) {
+            currentFormImages.splice(index, 1);
+            renderFormImgPreviews();
+        }
+
+        function renderFormImgPreviews() {
+            const container = document.getElementById('formImgPreviews');
+            container.innerHTML = currentFormImages.map((src, idx) => `
+                <div class="relative h-20 rounded-lg overflow-hidden border border-slate-200 group bg-slate-100">
+                    <img src="${src}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeFormImage(${idx})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-90 hover:opacity-100">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('formId').value;
+            const title = document.getElementById('formTitle').value.trim();
+            const price = parseFloat(document.getElementById('formPrice').value);
+            const condition = document.getElementById('formCondition').value;
+            const status = document.getElementById('formStatus').value;
+            const location = document.getElementById('formLocation').value.trim();
+            const description = document.getElementById('formDescription').value.trim();
+
+            const finalImages = currentFormImages.length > 0 
+                ? currentFormImages 
+                : ["https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen"];
+
+            if (id) {
+                const index = products.findIndex(p => p.id === id);
+                if (index !== -1) {
+                    products[index] = { id, title, price, condition, status, location, images: finalImages, description };
+                }
+            } else {
+                const newProduct = {
+                    id: 'prod-' + Date.now(),
+                    title,
+                    price,
+                    condition,
+                    status,
+                    location,
+                    images: finalImages,
+                    description
+                };
+                products.unshift(newProduct);
+            }
+
+            await saveProductsToCloud();
+            renderCatalog();
+            renderAdminTable();
+            closeModal('productFormModal');
+        }
+
+        function editProduct(id) { openFormModal(id); }
+
+        async function deleteProduct(id) {
+            if (confirm("¿Estás seguro de eliminar este producto?")) {
+                products = products.filter(p => p.id !== id);
+                await saveProductsToCloud();
+                renderCatalog();
+                renderAdminTable();
+            }
+        }
+
+        // --- CÓDIGO QR Y MODALES ---
+        function openQRModal() {
+            const qrContainer = document.getElementById('qrcodeCanvas');
+            qrContainer.innerHTML = '';
+
+            new QRCode(qrContainer, {
+                text: window.location.href,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrModal').classList.remove('hidden');
+        }
+
+        function copyCurrentUrl() {
+            const url = window.location.href;
+            const tempInput = document.createElement("input");
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            const toast = document.getElementById('copyToast');
+            toast.classList.remove('opacity-0');
+            setTimeout(() => { toast.classList.add('opacity-0'); }, 2500);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
